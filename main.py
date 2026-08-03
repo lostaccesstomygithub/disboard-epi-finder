@@ -1,12 +1,14 @@
 # https://disboard.org/site/get-invite/<ID> <- git invite
 # verification cookie = ageVerified 1
+import sys
 
 import curl_cffi
 from bs4 import BeautifulSoup
 import re
 import loguru
-
 import time
+
+tag_of_choice = sys.argv[1]
 
 def normalize(text: str) -> str:
     return text.lower()
@@ -30,16 +32,16 @@ output.write("server_id,flags\n")
 
 session = curl_cffi.Session(cookies={"ageVerified": "1"}, impersonate="chrome")
 
-first_page = session.get("https://disboard.org/search?keyword=proship&nsfw=1")
+first_page = session.get(f"https://disboard.org/servers/tag/{tag_of_choice}?nsfw=1")
 soup_first = BeautifulSoup(first_page.content, "lxml")
 csrf_token = soup_first.find("meta", attrs={"name": "csrf-token"})["content"]
 
 index = 1
 while True:
     request = session.get(
-        f"https://disboard.org/search?keyword=proship&nsfw=1&page={index}",
+        f"https://disboard.org/servers/tag/{tag_of_choice}?nsfw=1&page={index}",
         headers={
-            "Referer": "https://disboard.org/search?keyword=proship&nsfw=1",
+            "Referer": "https://disboard.org/servers/tag/proship?nsfw=1",
             "x-requested-with": "XMLHttpRequest",
             "x-csrf-token": csrf_token,
         },
